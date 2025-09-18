@@ -125,7 +125,7 @@ int main() {
                 break;
 
             case 4:
-                cout << "Enter Book ID : ";
+                cout << "Enter Book ID: ";
                 cin >> id;
                 lib.issuedBook(id);
                 break;
