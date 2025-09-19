@@ -1,100 +1,111 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <string>
 using namespace std;
 
+// ------------------ Book Class ------------------
 class Book {
-    public: 
-        int id;
-        string title;
-        string author;
-        bool isIssued;
+public:
+    int id;
+    string title;
+    string author;
+    bool isIssued;
 
-        Book(int _id, string _title, string _author) {
-            id = _id;
-            title = _title;
-            author = _author;
-            isIssued = false;
-        }
+    Book(int _id, string _title, string _author) {
+        id = _id;
+        title = _title;
+        author = _author;
+        isIssued = false;
+    }
 };
 
+// ------------------ Library Class ------------------
 class Library {
-    vector<Book> books;
+    vector<Book> books;                         // store all books
+    unordered_map<int, int> bookIndexById;      // maps book ID -> index in vector
 
-    public:
-        void addBook(int id, string title, string author) {
-            Book newBook(id, title, author);
-            books.push_back(newBook);
-            cout << "Book addaed successfully!\n";
+public:
+    // Add new book
+    void addBook(int id, string title, string author) {
+        if (bookIndexById.find(id) != bookIndexById.end()) {
+            cout << " Book with ID " << id << " already exists!\n";
+            return;
         }
+        Book newBook(id, title, author);
+        books.push_back(newBook);
+        bookIndexById[id] = books.size() - 1;   // store index of this book
+        cout << " Book added successfully!\n";
+    }
 
-        void displayBooks() {
-            cout << "\n Library BBoks:\n";
-            if (books.empty()){
-                cout << "No books in Library. \n";
-                return;
-            }
-            for(auto &b : books){
-                cout << "ID: " << b.id
-                     << " | Title : " << b.title
-                     << " | Author : " << b.author
-                     << " | Status : " << (b.isIssued ? "Issued" : "Available")
-                     << endl;
-            }
+    // Display all books
+    void displayBooks() {
+        cout << "\nLibrary Books:\n";
+        if (books.empty()) {
+            cout << "No books in library.\n";
+            return;
         }
-
-        void searchBook(int id) {
-            for(auto &b : books) {
-                if (b.id == id) {
-                    cout << " Found: " << b.title << " by " << b.author
-                         << " (" << (b.isIssued ? "Issued" : "Available") << ")\n";
-                         return;
-                }
-            }
-            cout << "Book not found! \n";
+        for (auto &b : books) {
+            cout << "ID: " << b.id
+                 << " | Title: " << b.title
+                 << " | Author: " << b.author
+                 << " | Status: " << (b.isIssued ? "Issued" : "Available")
+                 << endl;
         }
+    }
 
-        void issuedBook(int id){
-            for(auto &b : books) {
-                if (b.id == id) {
-                    if(b.isIssued) {
-                        cout << " Book already issued! \n";
-                    }else{
-                        b.isIssued = true;
-                        cout << "Book issued successfully! \n";
-                    }
-                    return;
-                }
-            }
-            cout << "Book not found! \n";
+    // Search by ID (O(1) lookup)
+    void searchBook(int id) {
+        if (bookIndexById.find(id) == bookIndexById.end()) {
+            cout << " Book not found!\n";
+            return;
         }
+        Book &b = books[bookIndexById[id]];
+        cout << "Found: " << b.title << " by " << b.author
+             << " (" << (b.isIssued ? "Issued" : "Available") << ")\n";
+    }
 
-        void returnBook(int id) {
-            for( auto &b : books) {
-                if(b.id == id) {
-                    if(!b.isIssued) {
-                        cout << "Book was not issued!\n";
-                    }else{
-                        b.isIssued = false;
-                        cout << " Book  return successfully!\n";
-                    }
-                    return;
-                }
-            }
+    // Issue book (O(1))
+    void issueBook(int id) {
+        if (bookIndexById.find(id) == bookIndexById.end()) {
             cout << "Book not found!\n";
+            return;
         }
+        Book &b = books[bookIndexById[id]];
+        if (b.isIssued) {
+            cout << "Book already issued!\n";
+        } else {
+            b.isIssued = true;
+            cout << "Book issued successfully!\n";
+        }
+    }
 
+    // Return book (O(1))
+    void returnBook(int id) {
+        if (bookIndexById.find(id) == bookIndexById.end()) {
+            cout << "Book not found!\n";
+            return;
+        }
+        Book &b = books[bookIndexById[id]];
+        if (!b.isIssued) {
+            cout << "Book was not issued!\n";
+        } else {
+            b.isIssued = false;
+            cout << "Book returned successfully!\n";
+        }
+    }
 };
 
+// ------------------ Main Function ------------------
 int main() {
     Library lib;
     int choice, id;
     string title, author;
 
-    while(true) {
+    while (true) {
         cout << "\n===== Library Menu =====\n";
         cout << "1. Add Book\n";
-        cout << "2. Display Book\n";
+        cout << "2. Display Books\n";
         cout << "3. Search Book\n";
         cout << "4. Issue Book\n";
         cout << "5. Return Book\n";
@@ -106,9 +117,9 @@ int main() {
             case 1:
                 cout << "Enter Book ID: ";
                 cin >> id;
-                cin.ignore(); 
+                cin.ignore();
                 cout << "Enter Title: ";
-                getline(cin , title);
+                getline(cin, title);
                 cout << "Enter Author: ";
                 getline(cin, author);
                 lib.addBook(id, title, author);
@@ -117,17 +128,17 @@ int main() {
             case 2:
                 lib.displayBooks();
                 break;
-            
+
             case 3:
-                cout << "enter Book ID: ";
-                cin >> id;                
+                cout << "Enter Book ID: ";
+                cin >> id;
                 lib.searchBook(id);
                 break;
 
             case 4:
                 cout << "Enter Book ID: ";
                 cin >> id;
-                lib.issuedBook(id);
+                lib.issueBook(id);
                 break;
 
             case 5:
@@ -137,11 +148,11 @@ int main() {
                 break;
 
             case 6:
-                cout << "Exiting Library Syatem. Goodbye! \n";
+                cout << "Exiting Library System. Goodbye!\n";
                 return 0;
 
             default:
-                cout << "Invalid choice, please tey again. \n";
+                cout << "Invalid choice, please try again.\n";
         }
     }
 }
